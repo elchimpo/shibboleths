@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    *{ box-sizing:border-box; }
+    html,body{ margin:0; padding:0; height:100%; background:#0c0e12; }
+    body{ font-family:'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif; }
+    ::selection{ background:#6f9fd6; color:#0c0e12; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+  </style>
+</helmet>
+<div ref="{{ setRoot }}" style="position:fixed; inset:0; background:var(--bg,#0c0e12); overflow:hidden; color:var(--text,#eef2f4); transition:background .7s ease, color .7s ease;">
+  <canvas ref="{{ setViz }}" style="position:absolute; inset:0; width:100%; height:100%; display:block; z-index:0;"></canvas>
+  <div style="position:absolute; inset:0; z-index:1; background:radial-gradient(125% 95% at 50% 40%, rgba(12,14,18,0) 44%, rgba(12,14,18,0.34) 100%); pointer-events:none;"></div>
+
+  <div style="position:relative; z-index:2; height:100%; overflow-y:auto; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding:48px 24px 64px;">
+    <div style="margin:auto 0; flex:none; width:100%; display:flex; flex-direction:column; align-items:center; gap:30px;">
+
+    <div style="display:flex; flex-direction:column; align-items:center; gap:7px; animation:fadeUp .8s ease both;">
+      <div style="font-size:11px; letter-spacing:.42em; text-transform:uppercase; color:var(--p-label,#a8786f); font-weight:500; padding-left:.42em;">{{ artist }}</div>
+    </div>
+
+    <div ref="{{ setGlow }}" style="flex:none; width:min(74vmin, 460px); aspect-ratio:1/1; perspective:1400px; animation:fadeUp 1s ease .08s both;">
+      <div onClick="{{ onFlip }}" title="Click to flip" style="position:relative; width:100%; height:100%; cursor:pointer; transition:transform .35s cubic-bezier(.2,.7,.3,1);" style-hover="transform:scale(1.03);">
+        <div style="position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .8s cubic-bezier(.6,.02,.2,1); transform:{{ flipTransform }};">
+          <div style="position:absolute; inset:0; border-radius:3px; overflow:hidden; backface-visibility:hidden; -webkit-backface-visibility:hidden; box-shadow:0 30px 80px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.04);">
+            <img ref="{{ setCover }}" src="assets/cover.png" alt="Album cover" style="width:100%; height:100%; object-fit:cover; display:block;">
+          </div>
+          <div style="position:absolute; inset:0; border-radius:3px; overflow:hidden; backface-visibility:hidden; -webkit-backface-visibility:hidden; transform:rotateY(180deg); box-shadow:0 30px 80px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.04);">
+            <img src="assets/back.png" alt="Album back" style="width:100%; height:100%; object-fit:cover; display:block;">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="width:min(74vmin, 460px); max-width:100%; display:flex; flex-direction:column; gap:18px; animation:fadeUp 1s ease .16s both;">
+
+      <div style="display:flex; align-items:baseline; justify-content:space-between; gap:14px; min-height:22px;">
+        <div style="font-size:16px; font-weight:500; letter-spacing:.01em; color:var(--text,#eef2f4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ nowTitle }}</div>
+        <div style="font-family:'Spline Sans Mono', ui-monospace, monospace; font-size:12px; color:var(--sec,#76828f); white-space:nowrap; flex:none;">{{ timeLabel }}</div>
+      </div>
+
+      <div onClick="{{ onSeek }}" style="position:relative; height:18px; display:flex; align-items:center; cursor:pointer;" title="Seek">
+        <div style="position:absolute; left:0; right:0; height:2px; background:rgba(185,216,232,.15); border-radius:2px;"></div>
+        <div style="position:absolute; left:0; height:2px; background:var(--p-accent,#6f9fd6); border-radius:2px; width:{{ progressPct }};"></div>
+        <div style="position:absolute; top:50%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%; background:var(--p-pale,#b9d8e8); left:{{ progressPct }}; box-shadow:0 1px 4px rgba(0,0,0,.6);"></div>
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:center; gap:26px;">
+        <button onClick="{{ onPrev }}" aria-label="Previous track" style="background:none; border:none; padding:6px; cursor:pointer; color:var(--sec,#aab6c2); display:flex;" style-hover="color:var(--pale,#b9d8e8);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 6h2v12H7zM19 6v12l-9-6z"/></svg>
+        </button>
+        <button onClick="{{ onPlayPause }}" aria-label="Play or pause" style="width:58px; height:58px; border-radius:50%; background:var(--p-accent,#6f9fd6); border:none; cursor:pointer; color:var(--p-bg,#0c0e12); display:flex; align-items:center; justify-content:center; transition:transform .15s ease, background .15s ease;" style-hover="transform:scale(1.05); background:var(--p-accent-hover,#86b1de);">
+          <sc-if value="{{ isPlaying }}" hint-placeholder-val="{{ false }}">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>
+          </sc-if>
+          <sc-if value="{{ isPaused }}" hint-placeholder-val="{{ true }}">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="margin-left:3px;"><path d="M6.5 5v14l11-7z"/></svg>
+          </sc-if>
+        </button>
+        <button onClick="{{ onNext }}" aria-label="Next track" style="background:none; border:none; padding:6px; cursor:pointer; color:var(--sec,#aab6c2); display:flex;" style-hover="color:var(--pale,#b9d8e8);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M15 6h2v12h-2zM5 6l9 6-9 6z"/></svg>
+        </button>
+        <button onClick="{{ onStop }}" aria-label="Stop" style="background:none; border:none; padding:6px; cursor:pointer; color:var(--muted,#6f7884); display:flex; margin-left:2px;" style-hover="color:var(--pale,#b9d8e8);">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div style="width:min(74vmin, 460px); max-width:100%; border-top:1px solid rgba(185,216,232,.10); padding-top:6px; animation:fadeUp 1s ease .24s both;">
+      <sc-for list="{{ rows }}" as="row" hint-placeholder-count="13">
+        <div onClick="{{ row.onClick }}" style="display:flex; align-items:center; gap:14px; padding:9px 4px; cursor:pointer; border-bottom:1px solid rgba(185,216,232,.06); animation:{{ row.rowAnim }};" style-hover="background:rgba(111,159,214,.07);">
+          <span style="font-family:'Spline Sans Mono', ui-monospace, monospace; font-size:11px; width:20px; flex:none; color:{{ row.numColor }};">{{ row.n }}</span>
+          <span style="flex:1; font-size:14px; letter-spacing:.005em; color:{{ row.color }}; font-weight:{{ row.weight }}; font-style:{{ row.fontStyle }}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ row.title }}</span>
+          <sc-if value="{{ row.active }}" hint-placeholder-val="{{ false }}">
+            <span ref="{{ row.setBars }}" style="display:flex; align-items:flex-end; gap:2px; height:13px; width:16px; flex:none;">
+              <i style="width:3px; background:var(--accent,#6f9fd6); height:40%; display:block;"></i>
+              <i style="width:3px; background:var(--accent,#6f9fd6); height:90%; display:block;"></i>
+              <i style="width:3px; background:var(--accent,#6f9fd6); height:60%; display:block;"></i>
+            </span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="font-size:10.5px; letter-spacing:.06em; color:var(--p-muted,#5a6470); animation:fadeUp 1s ease .3s both;">{{ album }}</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;100%&quot;},&quot;autoplay&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;vizIntensity&quot;:{&quot;editor&quot;:&quot;float&quot;,&quot;default&quot;:0.33,&quot;min&quot;:0,&quot;max&quot;:1,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Sky&quot;,&quot;options&quot;:[&quot;Sky&quot;,&quot;Terracotta&quot;,&quot;Slate&quot;,&quot;Mono&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = {
+    artist: 'Gaz Wills', album: 'Shibboleths', coverSrc: 'assets/cover.png',
+    tracks: [], current: -1, isPlaying: false,
+    cur: 0, dur: 0, flipped: false
+  };
+
+  flip = () => this.setState(s => ({ flipped: !s.flipped }));
+
+  // ---------- theming ----------
+  THEMES = {
+    Sky:        { accent:'#6f9fd6', accentHover:'#86b1de', pale:'#b9d8e8', text:'#eef2f4', sec:'#76828f', muted:'#5e6670', label:'#a8786f', bg:'#0c0e12', tint:[0.66,0.80,1.05] },
+    Terracotta: { accent:'#c47e5e', accentHover:'#d4926f', pale:'#e7c2a8', text:'#f3ede7', sec:'#908175', muted:'#6c6057', label:'#7fa0c4', bg:'#120e0c', tint:[1.06,0.80,0.60] },
+    Slate:      { accent:'#8fb0c4', accentHover:'#a6c6d8', pale:'#c6dce8', text:'#eef2f4', sec:'#7a8794', muted:'#59626c', label:'#9aa7b2', bg:'#0d1013', tint:[0.74,0.86,1.0] },
+    Mono:       { accent:'#f3f2ef', accentHover:'#ffffff', pale:'#ffffff', text:'#f2f1ee', sec:'#7c7b77', muted:'#67665f', label:'#7c7b77', bg:'#080809', tint:[0.9,0.93,1.0] }
+  };
+  theme() {
+    const name = this.state.flipped ? 'Mono' : (this.props.theme || 'Sky');
+    return this.THEMES[name] || this.THEMES.Sky;
+  }
+  setRoot = (el) => { this.rootEl = el; this.applyTheme(); };
+  applyTheme() {
+    if (!this.rootEl) return;
+    const flipName = this.state.flipped ? 'Mono' : (this.props.theme || 'Sky');
+    const primaryName = this.props.theme || 'Sky';
+    const sig = flipName + '|' + primaryName;
+    if (sig === this._appliedTheme) return;
+    this._appliedTheme = sig;
+    const T = this.THEMES[flipName] || this.THEMES.Sky;
+    const P = this.THEMES[primaryName] || this.THEMES.Sky;
+    const s = this.rootEl.style;
+    // secondary palette — flips to Mono when the back cover is shown
+    s.setProperty('--accent', T.accent);
+    s.setProperty('--accent-hover', T.accentHover);
+    s.setProperty('--pale', T.pale);
+    s.setProperty('--text', T.text);
+    s.setProperty('--sec', T.sec);
+    s.setProperty('--muted', T.muted);
+    s.setProperty('--label', T.label);
+    s.setProperty('--bg', T.bg);
+    // primary palette — first-order info, never changes on flip
+    s.setProperty('--p-accent', P.accent);
+    s.setProperty('--p-accent-hover', P.accentHover);
+    s.setProperty('--p-pale', P.pale);
+    s.setProperty('--p-muted', P.muted);
+    s.setProperty('--p-label', P.label);
+    s.setProperty('--p-bg', P.bg);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    const themeChanged = !prevProps || prevProps.theme !== this.props.theme;
+    const flipChanged = !prevState || prevState.flipped !== this.state.flipped;
+    if (themeChanged || flipChanged) this.applyTheme();
+  }
+
+  // ---------- lifecycle ----------
+  componentDidMount() {
+    this.audio = new Audio();
+    this.audio.preload = 'none';
+    this.audio.crossOrigin = 'anonymous';
+    this.audio.addEventListener('timeupdate', () => this.setState({ cur: this.audio.currentTime }));
+    this.audio.addEventListener('durationchange', () => this.setState({ dur: this.audio.duration || 0 }));
+    this.audio.addEventListener('loadedmetadata', () => this.setState({ dur: this.audio.duration || 0 }));
+    this.audio.addEventListener('play', () => this.setState({ isPlaying: true }));
+    this.audio.addEventListener('pause', () => this.setState({ isPlaying: false }));
+    this.audio.addEventListener('ended', this.onEnded);
+    this.loadPlaylist();
+    this.bootViz();
+    window.addEventListener('resize', this.onResize);
+  }
+  componentWillUnmount() {
+    cancelAnimationFrame(this._raf);
+    window.removeEventListener('resize', this.onResize);
+    try { this.audio.pause(); } catch (e) {}
+    try { if (this.actx) this.actx.close(); } catch (e) {}
+  }
+
+  async loadPlaylist() {
+    try {
+      const r = await fetch('playlist.json', { cache: 'no-store' });
+      const d = await r.json();
+      this.setState({
+        tracks: d.tracks || [],
+        artist: d.artist || this.state.artist,
+        album: d.album || this.state.album,
+        coverSrc: d.cover || this.state.coverSrc
+      }, () => { if (this.coverEl) this.coverEl.src = this.state.coverSrc; this.maybeAutoplay(); });
+    } catch (e) {
+      console.warn('Could not load playlist.json', e);
+    }
+  }
+
+  // ---------- audio ----------
+  toStream(url) {
+    if (!url) return url;
+    let u = url.replace('://www.dropbox.com', '://dl.dropboxusercontent.com')
+               .replace('://dropbox.com', '://dl.dropboxusercontent.com');
+    if (/[?&]dl=0/.test(u)) u = u.replace(/([?&])dl=0/, '$1dl=1');
+    else if (!/[?&](dl|raw)=1/.test(u)) u += (u.includes('?') ? '&' : '?') + 'dl=1';
+    return u;
+  }
+  ensureGraph() {
+    if (this.actx) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    this.actx = new AC();
+    try {
+      this.srcNode = this.actx.createMediaElementSource(this.audio);
+      this.analyser = this.actx.createAnalyser();
+      this.analyser.fftSize = 1024;
+      this.analyser.smoothingTimeConstant = 0.82;
+      this.srcNode.connect(this.analyser);
+      this.analyser.connect(this.actx.destination);
+      this.freq = new Uint8Array(this.analyser.frequencyBinCount);
+    } catch (e) { console.warn('analyser unavailable', e); }
+  }
+  load(i, autoplay) {
+    const t = this.state.tracks[i];
+    if (!t) return;
+    this.audio.src = this.toStream(t.src);
+    this.setState({ current: i, cur: 0, dur: 0 });
+    if (autoplay) this.play();
+  }
+  play() {
+    if (this.state.current < 0) { this.load(0, false); }
+    this.ensureGraph();
+    if (this.actx && this.actx.state === 'suspended') this.actx.resume();
+    const p = this.audio.play();
+    if (p && p.catch) p.catch(err => console.warn('playback blocked/failed', err));
+    return p;
+  }
+  maybeAutoplay() {
+    const on = (this.props.autoplay != null ? this.props.autoplay : true);
+    if (!on || !this.state.tracks.length || this._autoTried) return;
+    this._autoTried = true;
+    this.load(0, false);
+    const p = this.play();
+    if (p && p.catch) p.catch(() => this.armGesture());
+  }
+  armGesture() {
+    if (this._armed) return;
+    this._armed = true;
+    const go = () => {
+      document.removeEventListener('pointerdown', go);
+      document.removeEventListener('keydown', go);
+      if (this.actx && this.actx.state === 'suspended') this.actx.resume();
+      if (this.audio.paused) this.play();
+    };
+    document.addEventListener('pointerdown', go);
+    document.addEventListener('keydown', go);
+  }
+  playPause = () => {
+    if (this.state.current < 0) { this.load(0, true); return; }
+    if (this.audio.paused) this.play(); else this.audio.pause();
+  };
+  stop = () => {
+    this.audio.pause();
+    try { this.audio.currentTime = 0; } catch (e) {}
+    this.setState({ isPlaying: false, cur: 0 });
+  };
+  // ---------- bonus track (lives on the back of the digipack) ----------
+  // The bonus row is only revealed while the cover is flipped to its back,
+  // and is hidden (and skipped by next/prev) when the front is showing.
+  isLocked(i) {
+    const t = this.state.tracks[i];
+    return !!(t && t.bonus && !this.state.flipped);
+  }
+  onEnded = () => {
+    this.next(true);
+  };
+
+  next = (auto) => {
+    const tr = this.state.tracks; const n = tr.length; if (!n) return;
+    let i = this.state.current;
+    for (let step = 0; step < n; step++) {
+      i = (i + 1) % n;
+      if (!this.isLocked(i)) break;
+    }
+    this.load(i, auto || this.state.isPlaying);
+  };
+  prev = () => {
+    const tr = this.state.tracks; const n = tr.length; if (!n) return;
+    if (this.audio.currentTime > 3) { this.audio.currentTime = 0; return; }
+    let i = this.state.current < 0 ? 0 : this.state.current;
+    for (let step = 0; step < n; step++) {
+      i = (i - 1 + n) % n;
+      if (!this.isLocked(i)) break;
+    }
+    this.load(i, this.state.isPlaying);
+  };
+  seek = (e) => {
+    if (!this.state.dur) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const f = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    this.audio.currentTime = f * this.state.dur;
+    this.setState({ cur: this.audio.currentTime });
+  };
+  select = (i) => () => this.load(i, true);
+
+  fmt(s) {
+    if (!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60), ss = Math.floor(s % 60);
+    return m + ':' + String(ss).padStart(2, '0');
+  }
+
+  // ---------- visualization ----------
+  setViz = (el) => { this.canvas = el; };
+  setCover = (el) => { this.coverEl = el; if (el && this.state.coverSrc) el.src = this.state.coverSrc; };
+  setBars = (el) => { this.bars = el; };
+  onResize = () => {
+    if (!this.renderer) return;
+    const w = window.innerWidth, h = window.innerHeight;
+    this.renderer.setSize(w, h, false);
+    this.uniforms.uRes.value.set(w * this.renderer.getPixelRatio(), h * this.renderer.getPixelRatio());
+  };
+  bootViz() {
+    let tries = 0;
+    const tick = () => {
+      if (window.THREE && this.canvas) { this.initViz(); return; }
+      if (tries++ < 120) requestAnimationFrame(tick);
+    };
+    tick();
+  }
+  initViz() {
+    const THREE = window.THREE;
+    const intensity = (this.props.vizIntensity != null ? this.props.vizIntensity : 0.5);
+    const renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: false, alpha: false });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    this.renderer = renderer;
+    const scene = new THREE.Scene();
+    const cam = new THREE.Camera();
+    this.uniforms = {
+      uTime: { value: 0 },
+      uRes: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+      uBass: { value: 0 }, uMid: { value: 0 }, uHigh: { value: 0 },
+      uInt: { value: 0.6 + intensity * 1.5 },
+      uTint: { value: (function(t){ return new THREE.Vector3(t[0], t[1], t[2]); })(this.theme().tint) }
+    };
+    const mat = new THREE.ShaderMaterial({
+      uniforms: this.uniforms,
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position,1.0); }',
+      fragmentShader: this.FRAG
+    });
+    scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), mat));
+    let bass = 0, mid = 0, high = 0;
+    const start = performance.now();
+    const loop = () => {
+      this._raf = requestAnimationFrame(loop);
+      let b = 0, m = 0, h = 0;
+      if (this.analyser && this.freq) {
+        this.analyser.getByteFrequencyData(this.freq);
+        const f = this.freq;
+        const avg = (lo, hi) => { let s = 0; for (let i = lo; i < hi; i++) s += f[i]; return (s / (hi - lo)) / 255; };
+        b = avg(1, 10); m = avg(10, 44); h = avg(44, 130);
+      }
+      bass += (b - bass) * 0.12; mid += (m - mid) * 0.12; high += (h - high) * 0.12;
+      this.uniforms.uBass.value = bass;
+      this.uniforms.uMid.value = mid;
+      this.uniforms.uHigh.value = high;
+      this.uniforms.uTime.value = (performance.now() - start) / 1000;
+      const liveInt = (this.props.vizIntensity != null ? this.props.vizIntensity : 0.5);
+      this.uniforms.uInt.value = 0.6 + liveInt * 1.5;
+      const tnt = this.theme().tint;
+      const u = this.uniforms.uTint.value;
+      u.x += (tnt[0] - u.x) * 0.06;
+      u.y += (tnt[1] - u.y) * 0.06;
+      u.z += (tnt[2] - u.z) * 0.06;
+      if (this.bars) {
+        const ch = this.bars.children;
+        if (ch[0]) ch[0].style.height = (25 + bass * 75) + '%';
+        if (ch[1]) ch[1].style.height = (35 + mid * 65) + '%';
+        if (ch[2]) ch[2].style.height = (25 + high * 75) + '%';
+      }
+      renderer.render(scene, cam);
+    };
+    loop();
+  }
+
+  get FRAG() {
+    return [
+      'precision highp float;',
+      'varying vec2 vUv;',
+      'uniform vec2 uRes; uniform float uTime, uBass, uMid, uHigh, uInt; uniform vec3 uTint;',
+      'float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }',
+      'float noise(vec2 p){ vec2 i=floor(p),f=fract(p); vec2 u=f*f*(3.0-2.0*f);',
+      ' return mix(mix(hash(i),hash(i+vec2(1,0)),u.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y); }',
+      'float fbm(vec2 p){ float v=0.0,a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p*=2.02; a*=0.5; } return v; }',
+      'void main(){',
+      ' vec2 uv=vUv; vec2 p=uv*vec2(uRes.x/uRes.y,1.0);',
+      ' float t=uTime*0.025;',
+      ' vec2 q=vec2(fbm(p*1.4+vec2(t,0.0)), fbm(p*1.4+vec2(5.2,t*0.8)));',
+      ' float f=fbm(p*2.0 + q*(1.0+uBass*1.3) + vec2(-t*0.5, t*0.35));',
+      ' float lines=sin(uv.y*38.0 + uTime*0.5 + f*6.0)*0.5+0.5;',
+      ' lines=pow(lines,8.0)*uMid*0.18;',
+      ' float glow=smoothstep(0.12,0.92,f);',
+      ' float lum=0.03 + glow*0.22*(0.7+uBass*1.0) + lines + uHigh*0.035;',
+      ' float d=distance(uv,vec2(0.5,0.46));',
+      ' lum *= mix(0.55,1.0, smoothstep(0.0,0.85,d));',
+      ' lum *= uInt;',
+      ' vec3 col=vec3(lum)*uTint;',
+      ' col += (hash(uv*uRes+uTime)-0.5)*0.012;',
+      ' gl_FragColor=vec4(col,1.0);',
+      '}'
+    ].join('\n');
+  }
+
+  renderVals() {
+    const s = this.state;
+    const T = this.theme();
+    const playing = s.isPlaying;
+    const rows = [];
+    s.tracks.forEach((t, i) => {
+      if (t.bonus && !s.flipped) return; // only shown when the back cover is displayed
+      const active = i === s.current;
+      const terra = this.THEMES.Sky.label; // terracotta — first-order accent
+      rows.push({
+        n: t.bonus ? '\u00B7' : String(i + 1).padStart(2, '0'),
+        title: t.title || ('Track ' + (i + 1)),
+        active,
+        color: t.bonus ? terra : (active ? T.text : T.sec),
+        numColor: t.bonus ? terra : (active ? T.label : T.muted),
+        weight: active ? 500 : 400,
+        fontStyle: t.bonus ? 'italic' : 'normal',
+        rowAnim: t.bonus ? 'fadeUp .9s ease both' : 'none',
+        onClick: this.select(i),
+        setBars: active ? this.setBars : (() => {})
+      });
+    });
+    const nowTitle = s.current >= 0 && s.tracks[s.current]
+      ? s.tracks[s.current].title
+      : (s.tracks.length ? 'Select a track' : 'Loading…');
+    return {
+      artist: s.artist, album: s.album, coverSrc: s.coverSrc,
+      rows, nowTitle,
+      isPlaying: playing, isPaused: !playing,
+      timeLabel: this.fmt(s.cur) + ' / ' + this.fmt(s.dur),
+      progressPct: (s.dur ? (s.cur / s.dur) * 100 : 0).toFixed(2) + '%',
+      onPlayPause: this.playPause, onStop: this.stop,
+      onPrev: this.prev, onNext: this.next, onSeek: this.seek,
+      setViz: this.setViz, setCover: this.setCover, setGlow: (el) => { this.glowEl = el; },
+      setRoot: this.setRoot,
+      onFlip: this.flip,
+      flipTransform: s.flipped ? 'rotateY(180deg)' : 'rotateY(0deg)'
+    };
+  }
+}
+</script>
+</body>
+</html>

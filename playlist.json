@@ -1,0 +1,71 @@
+{
+  "artist": "Gaz Wills",
+  "album": "Shibboleths",
+  "cover": "assets/cover.png",
+  "_notes": [
+    "Edit this file to configure the player. No code changes needed.",
+    "Each track needs a 'title' and a 'src'. 'src' is a Dropbox share link to a .wav file.",
+    "Paste the normal Dropbox share link (the one ending in ?dl=0 or ?rlkey=...).",
+    "The player rewrites it to a direct-stream URL automatically.",
+    "Re-order tracks by re-ordering this array. Remove or add objects freely.",
+    "Add \"bonus\": true to a track to make it a hidden track — its row only appears while the cover is flipped to its back, and is hidden on the front."
+  ],
+  "tracks": [
+    { 
+      "title": "kalimab", 
+      "src": "https://www.dropbox.com/scl/fi/0lwc5p0bi66fdbthdzctc/1-kalimab-105-BPM.wav?rlkey=ewvcxe1evhuc8bj7bht85wvpv&st=9svqurex&dl=0" 
+    },
+    { 
+      "title": "somewhere in my dreams", 
+      "src": "https://www.dropbox.com/scl/fi/zq07p00qff4vaf8lni0mb/2-somewhere-in-my-dreams-115-BPM.wav?rlkey=77ocnbcm3eyvv1lgvsafdqz23&st=39abf1jh&dl=0" },
+    { 
+      "title": "adrift in the middle ages", 
+      "src": "https://www.dropbox.com/scl/fi/j20h8vxl4trgg8v1o4fye/3-sailing_thru_the_middle_ages-143-BPM.wav?rlkey=6lg0rh3bw88kzxtfkdg1jfs92&st=7c2aeue1&dl=0" 
+    },
+    { 
+      "title": "interlude I", 
+      "src": "https://www.dropbox.com/scl/fi/283hs1k650t6x6lk3jpuv/4-jacku_interlude-131-BPM.wav?rlkey=cg2em1hwa6ru96vzwlf2hequ6&st=hm873h1y&dl=0" 
+    },
+    { 
+      "title": "the well yard", 
+      "src": "https://www.dropbox.com/scl/fi/rkkqaxlzho9ypddkfuoly/5-the_well_yard-122-BPM.wav?rlkey=gwza4416611pdriuug7m296o6&st=n3on4zju&dl=0" 
+    },
+    { 
+      "title": "paris", 
+      "src": "https://www.dropbox.com/scl/fi/04x7a9jsd814hluq8d7m6/6-paris-125-BPM.wav?rlkey=wa2rq82mp6xqo5tlwquv74pwr&st=9iezgki7&dl=0" 
+    },
+    { 
+      "title": "dec 28", 
+      "src": "https://www.dropbox.com/scl/fi/6w1pqdtlnx3wezxpmib13/7-dec_28a-114-BPM.wav?rlkey=1iqe3fyoypuyuvssumy2snmgr&st=vjnib7td&dl=0" 
+    },
+    { 
+      "title": "interlude II", 
+      "src": "https://www.dropbox.com/scl/fi/2vq2lx4lqp0nh5944hugo/8-acid-interlude-112-BPM.wav?rlkey=7fhbjyt1mhysuq3pgycigq0vn&st=hn18si3v&dl=0" 
+    },
+    { 
+      "title": "broken sleep", 
+      "src": "https://www.dropbox.com/scl/fi/98phkqh1x0f60drvmqy8r/9-sleeping-badly-122-BPM-_broken_sleep.wav?rlkey=s3lz1gmsne0fjtb8gkuzuzrzg&st=tjaqv7oc&dl=0"
+    },
+    { 
+      "title": "when we argue", 
+      "src":  "https://www.dropbox.com/scl/fi/oeqvt6mxfypfac2993c4w/10-when_we_argue-130-BPM.wav?rlkey=78ty6ftpzyl4ys4upddhrp6q0&st=ydul8ffx&dl=0" 
+    },
+    { 
+      "title": "the day job", 
+      "src": "https://www.dropbox.com/scl/fi/kafl33u9dz7itggx82nfy/11-the-day-job-149-BPM.wav?rlkey=qubrwwa7mo5q8m1a0pxyfg8tf&st=0ec6bu1p&dl=0"
+    },
+    { 
+      "title": "interlude III", 
+      "src": "https://www.dropbox.com/scl/fi/dejktmmrkp0wflikpyt94/12-interlude_three-85-BPM.wav?rlkey=hbygy9yjuzhsxf3lrw4mb5t9e&st=k96xj2f9&dl=0" 
+    },
+    { 
+      "title": "stretching out the smile on my face", 
+      "src": "https://www.dropbox.com/scl/fi/gnl2fnimgcxjgbrzfd1xk/13-stretching-out-the-smile-on-my-face-103-BPM.wav?rlkey=1lc6s464z5033u7toixjb67cz&st=1zt42to7&dl=0" 
+    },
+    { 
+      "title": "bonus track", 
+      "bonus": true,
+      "src": "https://www.dropbox.com/scl/fi/2mt33tmxahdkxa7awhbbp/14-bonus-track-vibe_bass-130-BPM.wav?rlkey=h6ssqhhais0mo2x12pmmikrb0&st=fu4vfqmr&dl=0" 
+    }
+  ]
+}
